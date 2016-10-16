@@ -80,6 +80,6 @@ public class CheckersController {
 
     public void onTilePressed(int x, int y){
         System.out.println(x + " "+ y);
-        board.move(board.tileFromPos(x,y));
+        board.getMove(board.tileFromPos(x,y));
     }
 }

@@ -15,12 +15,12 @@ public class PieceView extends StackPane implements Observer {
 
 
     private final int TILE_SIZE;
-    private Piece piece;
+    private model.Piece piece;
     private Circle pieceBottom = new Circle();
     private Ellipse pieceTop = new Ellipse();
     private int oldX, oldY;
     private int timer;
-    public PieceView(Piece piece, int TILE_SIZE, int timer){
+    public PieceView(model.Piece piece, int TILE_SIZE, int timer){
         this.piece = piece;
         this.timer = timer;
         piece.addObserver(this);

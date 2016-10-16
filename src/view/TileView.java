@@ -14,9 +14,9 @@ import java.util.Observer;
  */
 public class TileView extends Rectangle implements Observer {
 
-    private Tile tile;
+    private model.Tile tile;
 
-    public TileView(Tile tile, int TILE_SIZE){
+    public TileView(model.Tile tile, int TILE_SIZE){
         this.tile = tile;
         tile.addObserver(this);
         setX(tile.getX()*TILE_SIZE);

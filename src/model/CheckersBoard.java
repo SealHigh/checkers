@@ -7,7 +7,6 @@ import javafx.util.Duration;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Observable;
-import java.util.Random;
 
 /**
  * Created by Martin on 2016-10-13.
@@ -17,13 +16,14 @@ import java.util.Random;
 
 public class CheckersBoard extends Observable implements Serializable {
 
-    private int WIDTH = 6, HEIGHT =6, timer = 500;
+    private int WIDTH = 8, HEIGHT =8, timer = 400;
     private Tile[][] board = new Tile[WIDTH][HEIGHT];
-    private int curPlayer;
-    private Tile oldTile;
+    public static int curPlayer;
+    public static Tile oldTile;
     private boolean AI;
     private int winner;
     private boolean moving;
+    private AI ai;
 
     public CheckersBoard(){
         createBoard(true);
@@ -41,8 +41,15 @@ public class CheckersBoard extends Observable implements Serializable {
         this.board = board.getBoard();
     }
 
+    /**
+     * Initializes board
+     * @param AI
+     * Play vs AI(true) or another player(false)
+     */
     private void createBoard(boolean AI) {
         this.AI = AI;
+        if(AI)
+            ai = new AI(this);
         winner = 0;
         curPlayer = 1;
         moving = false;
@@ -62,7 +69,15 @@ public class CheckersBoard extends Observable implements Serializable {
         createBoard(AI);
     }
 
-    private ArrayList<Tile> possibleMoves(Tile tile){
+    /**
+     * Test all possible moves for a tile, including if it's a queen
+     * (should be perfect for an alpha-beta AI)
+     * @param tile
+     * Tile containing piece to check moves for
+     * @return
+     * Arraylist of all possible moves
+     */
+    public ArrayList<Tile> getPossibleMoves(Tile tile){
         ArrayList<Tile> moves = new ArrayList<>();
 
         Tile tempTile;
@@ -95,6 +110,14 @@ public class CheckersBoard extends Observable implements Serializable {
         return moves;
     }
 
+    /**
+     * Check if selectedTile can getMove to desired tile,
+     * checks both 1 step and 2 steps
+     * @param tempTile
+     * Tile to getMove to
+     * @return
+     * If it can or can't getMove (boolean)
+     */
     private boolean checkMove(Tile tempTile){
         if (oldTile.isSelected() && !tempTile.hasPiece() ) {
             if (Math.abs(tempTile.getX()-oldTile.getX()) == 1 && tempTile.getY()-oldTile.getY()  == oldTile.getPiece().getDirection()){
@@ -106,10 +129,10 @@ public class CheckersBoard extends Observable implements Serializable {
                 }
             }
         }
+
         int tempX = (oldTile.getX() + tempTile.getX())/2;
         int tempY = (oldTile.getY() + tempTile.getY())/2;
         Tile tileInMiddle = tileFromPos(tempX, tempY);
-
         if (oldTile.isSelected() && tileInMiddle.hasPiece()&& !tempTile.hasPiece() ) {
             if(tileInMiddle.getPiece().getPlayer()!= oldTile.getPiece().getPlayer()) {
                 if (Math.abs(tempTile.getX() - oldTile.getX()) == 2 && tempTile.getY() - oldTile.getY() == oldTile.getPiece().getDirection() * 2) {
@@ -125,6 +148,12 @@ public class CheckersBoard extends Observable implements Serializable {
         return false;
     }
 
+    /**
+     * Removes pice inbetween oldTile
+     * and a tile 2 steps away
+     * @param tempTile
+     * Tile that the piece is moving to
+     */
     private void killPiece(Tile tempTile){
         int tempX = (oldTile.getX() + tempTile.getX())/2;
         int tempY = (oldTile.getY() + tempTile.getY())/2;
@@ -133,32 +162,53 @@ public class CheckersBoard extends Observable implements Serializable {
         tileInMiddle.setPiece(null);
     }
 
-    private void makeMove(Tile tempTile){
-        if(Math.abs(oldTile.getY() - tempTile.getY())==1) { //move is a simple step
-            moving=true;
-            oldTile.setSelected(false);
-            tempTile.setPiece(oldTile.getPiece());
-            oldTile.getPiece().setPos(tempTile.getX(), tempTile.getY());
-            oldTile.setPiece(null);
-            switchPlayer();
-        }
-
-        else if(Math.abs(oldTile.getY() - tempTile.getY())==2) { //move kills an enemy pice
-            moving=true;
-            killPiece(tempTile);
-            oldTile.setSelected(false);
-            tempTile.setPiece(oldTile.getPiece());
-            oldTile.getPiece().setPos(tempTile.getX(), tempTile.getY());
-            oldTile.setPiece(null);
-            switchPlayer();
-        }
-
+    /**
+     * Check if piece has reached opposite end
+     * if it has make it to a queen
+     * @param tempTile
+     * Tile containing piece to check
+     */
+    private void setIfQueen(Tile tempTile){
         if (tempTile.getPiece().getDirection() == -1 && tempTile.getY() == 0){ //reaching opposite side
             tempTile.getPiece().setQueen(true);
         }
         if (tempTile.getPiece().getDirection() == 1 && tempTile.getY() == WIDTH-1) { //reaching opposite side
             tempTile.getPiece().setQueen(true);
         }
+    }
+    /**
+     * Swap oldTile with new tile
+     * @param tempTile
+     * Tile to swap with
+     */
+    private void swapOldTile(Tile tempTile){
+        oldTile.setSelected(false);
+        tempTile.setPiece(oldTile.getPiece());
+        oldTile.getPiece().setPos(tempTile.getX(), tempTile.getY());
+        oldTile.setPiece(null);
+    }
+
+    /**
+     * Selected tile has been stored as oldTile and its piece
+     * is now getting moved to another tile.
+     * @param tempTile
+     * This is the tile we want to move to
+     */
+    public void makeMove(Tile tempTile){
+        if(Math.abs(oldTile.getY() - tempTile.getY())==1) { //getMove 1 step
+            moving=true;
+            swapOldTile(tempTile);
+            setIfQueen(tempTile);
+            switchPlayer();
+        }
+        else if(Math.abs(oldTile.getY() - tempTile.getY())==2) { //getMove 2 steps and kills an enemy piece
+            moving=true;
+            killPiece(tempTile);
+            swapOldTile(tempTile);
+            setIfQueen(tempTile);
+            switchPlayer();
+        }
+
         Timeline timeline = new Timeline(new KeyFrame( //Wait a little while before next player can go
                 Duration.millis(timer),
                 actionEvent->checkWin()));
@@ -166,18 +216,23 @@ public class CheckersBoard extends Observable implements Serializable {
 
     }
 
-    public void move(Tile tempTile) {
+    /**
+     * Get players move, and if AI is activated let AI play
+     * @param tempTile
+     * Tile that got pressed
+     */
+    public void getMove(Tile tempTile) {
         if (!moving && winner==0) {
             if (oldTile != null) {
-                ArrayList<Tile> moves = possibleMoves(oldTile);
+                ArrayList<Tile> moves = getPossibleMoves(oldTile);
                 for (Tile tile : moves
                         ) {
-                    if (tempTile == tile) {
+                    if (tempTile == tile) { //desired getMove is within possible moves
                         makeMove(tempTile);
-                        if (AI && curPlayer == 2) {
+                        if (AI) {
                             Timeline timeline = new Timeline(new KeyFrame( //Call AI after a cretain time
                                     Duration.millis(timer),
-                                    actionEvent -> moveAI()));
+                                    actionEvent -> ai.moveAI(winner)));
                             timeline.play();
                         }
                         return;
@@ -193,29 +248,35 @@ public class CheckersBoard extends Observable implements Serializable {
                     oldTile = tempTile;
                 }
             }
+            else if(tempTile == oldTile){
+                oldTile.setSelected(false);
+                switchPlayer();
+            }
         }
     }
+
     private void setWinner(int winner){
         this.winner = winner;
         setChanged();
         notifyObservers();
     }
 
+    /**
+     * Loops through all pieces and checks if a player
+     * doesn't have any pieces that can move.
+     */
     private void checkWin(){
         int player1 = 0;
         int player2 = 0;
-        for (Tile[] tile: board
-                ) {
-            for (Tile tilePiece: tile
-                    )
-            {
+        for (Tile[] tile: board) {
+            for (Tile tilePiece: tile) {
                 if(tilePiece.hasPiece()){
                     tilePiece.setSelected(true);
                     oldTile = tilePiece;
                     if(tilePiece.getPiece().getPlayer() == 1)
-                        player1 += possibleMoves(tilePiece).size();
+                        player1 += getPossibleMoves(tilePiece).size();
                     if(tilePiece.getPiece().getPlayer() == 2)
-                        player2 += possibleMoves(tilePiece).size();
+                        player2 += getPossibleMoves(tilePiece).size();
                     oldTile.setSelected(false);
                 }
             }
@@ -228,35 +289,11 @@ public class CheckersBoard extends Observable implements Serializable {
             moving=false;
     }
 
-    private void moveAI(){
-        if(winner != 0)
-            return;
-        for (Tile[] tile: board) {
-            for (Tile tilePiece: tile) {
-                if(tilePiece.hasPiece()) {
-                    if(tilePiece.getPiece().getPlayer() == curPlayer) {
-                        tilePiece.setSelected(true);
-                        oldTile = tilePiece;
-                        ArrayList<Tile> moves = possibleMoves(tilePiece);
-                        if(moves.size()>0) {
-                            Random rand = new Random();
-                            makeMove(moves.get(rand.nextInt(moves.size())));
-                            return;
-                        }
-                        else {
-                            tilePiece.setSelected(false);
-                        }
-                    }
-                }
-            }
-        }
-    }
     private void switchPlayer(){
         if(curPlayer == 1)
             curPlayer = 2;
         else
             curPlayer = 1;
-
         setChanged();
         notifyObservers();
     }
@@ -271,7 +308,6 @@ public class CheckersBoard extends Observable implements Serializable {
         else
             return oldTile;
     }
-
 
     public int getCurPlayer() {
         return curPlayer;
