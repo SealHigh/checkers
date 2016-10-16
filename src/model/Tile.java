@@ -1,29 +1,42 @@
 package model;
 
+import java.io.Serializable;
+import java.util.Observable;
+
 /**
  * Created by Martin on 2016-10-13.
  */
-public class Tile {
+public class Tile extends Observable implements Serializable {
 
     private int x,y;
-    private boolean hasPiece,color;
-    private int player;
+    private boolean color;
+    private Piece piece;
     private boolean selected = false;
 
-    public Tile(boolean color,boolean hasPiece,int player, int x, int y){
+    public Tile(boolean color,int player, int x, int y){
         this.color = color;
-        this.hasPiece = hasPiece;
-        this.player = player;
+        if(player != 0)
+            piece = new Piece(player, x,y);
         this.x = x;
         this.y = y;
     }
 
 
     public boolean hasPiece(){
-        return hasPiece;
+        if(piece != null)
+            return true;
+        else
+            return false;
     }
-    public void setPiece(boolean hasPiece){
-        this.hasPiece = hasPiece;
+
+    public Piece getPiece(){
+        return this.piece;
+    }
+
+    public void setPiece(Piece piece){
+        this.piece = piece;
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public boolean tielHasColor() {
@@ -38,9 +51,6 @@ public class Tile {
         return y;
     }
 
-    public int getPlayer() {
-        return player;
-    }
 
     public boolean isSelected() {
         return selected;
@@ -48,5 +58,8 @@ public class Tile {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+        this.setChanged();
+        this.notifyObservers();
     }
+
 }
