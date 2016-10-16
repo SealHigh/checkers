@@ -62,5 +62,7 @@ public class Piece extends Observable implements Serializable {
 
     public void setQueen(boolean queen) {
         this.queen = queen;
+        setChanged();
+        notifyObservers();
     }
 }

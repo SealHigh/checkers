@@ -11,7 +11,7 @@ import model.Tile;
  */
 public class CheckersView extends BorderPane {
 
-    private final int TILE_SIZE = 60, WIDTH, HEIGHT;
+    private final int TILE_SIZE = 100, WIDTH, HEIGHT;
     private final int menuBarHeight = 25;
     private CheckersBoard board;
     Text currentPlayer = new Text();

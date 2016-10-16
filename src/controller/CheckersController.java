@@ -3,7 +3,6 @@ package controller;
 import javafx.scene.control.Alert;
 import model.CheckersBoard;
 import view.CheckersView;
-import view.TileView;
 
 import javax.swing.*;
 import java.io.File;
@@ -20,6 +19,39 @@ public class CheckersController {
     public CheckersController(CheckersBoard board, CheckersView view){
         this.view = view;
         this.board = board;
+    }
+
+    public void onNewPvP(){
+        board.resetBoard(false);
+        view.initView(this);
+    }
+
+    public void onNewPvAI(){
+        board.resetBoard(true);
+        view.initView(this);
+    }
+
+    public void onTilePressed(int x, int y){
+        System.out.println(x + " "+ y);
+        board.getMove(board.tileFromPos(x,y));
+    }
+
+    public void onPause(){
+        board.setPaused(true);
+    }
+
+    public void onUnpause(){
+        board.setPaused(false);
+    }
+
+    public void onRules(){
+        Alert alert= new Alert(Alert.AlertType.INFORMATION,
+                "Checkers is a board game played on dark tiles only\n\n" +
+                "1. A piece can only move diagonally forward unless it's a queen\n" +
+                "2. A piece can also destroy an enemy piece by stepping over it\n" +
+                        "3. A piece turns into a queen upon reaching opposite side");
+        alert.setHeaderText("Rules");
+        alert.showAndWait();
     }
 
     public void onLoad(){
@@ -64,22 +96,5 @@ public class CheckersController {
         } else {
             System.out.println("Open command cancelled by user.");
         }
-
-
-    }
-
-    public void onNewPvP(){
-        board.resetBoard(false);
-        view.initView(this);
-    }
-
-    public void onNewPvAI(){
-        board.resetBoard(true);
-        view.initView(this);
-    }
-
-    public void onTilePressed(int x, int y){
-        System.out.println(x + " "+ y);
-        board.getMove(board.tileFromPos(x,y));
     }
 }

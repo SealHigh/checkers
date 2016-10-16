@@ -18,11 +18,14 @@ public class BoardState extends Text implements Observer {
         this.TILE_SIZE = TILE_SIZE;
         board.addObserver(this);
         setText("Red's turn");
+        displayAtTop();
+    }
+
+    private void displayAtTop(){
         setFont(new Font(18));
         setTranslateX(board.getWidth()*TILE_SIZE/2- getLayoutBounds().getWidth()/2);
         setTranslateY(25-getLayoutBounds().getHeight()/5);
     }
-
     private void displayInMiddle(){
         setFont(new Font(40));
         setTranslateX(board.getWidth()*TILE_SIZE/2- getLayoutBounds().getWidth()/2);
@@ -39,7 +42,12 @@ public class BoardState extends Text implements Observer {
             setText("White won");
             displayInMiddle();
         }
+        else if(board.isPaused()){
+            setText("Paused");
+            displayInMiddle();
+        }
         else {
+            displayAtTop();
             if(board.getCurPlayer() == 1)
                 setText("Red's turn");
             else if(board.getCurPlayer() == 2)

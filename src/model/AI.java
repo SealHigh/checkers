@@ -1,29 +1,59 @@
 package model;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+
 import java.util.ArrayList;
 import java.util.Random;
-import static model.CheckersBoard.oldTile;
 import static model.CheckersBoard.curPlayer;
+import static model.CheckersBoard.canMoveAgain;
 
 /**
  * Created by Martin on 2016-10-15.
  */
 public class AI {
 
-    CheckersBoard board;
+    private CheckersBoard board;
+    private boolean moving;
+    private int timer;
     public AI(CheckersBoard board){
         this.board = board;
     }
 
-    public void moveAI(int winner){
+
+    /**
+     * Make a move, if move captured a piece
+     * and piece that moved can capture another go again
+     * @param winner
+     * Make sure no one has won
+     * @param timer
+     * Time between moves (don't play instantly)
+     */
+    public void moveAI(int winner, int timer){
+        this.timer = timer;
         if(winner != 0)
             return;
         if(!moveBasedOnValue(2,false)) {
             if (!moveBasedOnValue(1, true))
                 moveBasedOnValue(1, false);
         }
-
     }
+
+    public void moveAgain(){
+        Timeline timeline = new Timeline(new KeyFrame( //Call AI after a cretain time
+                Duration.millis(timer),
+                actionEvent -> moveBasedOnValue(2, false)));
+        timeline.play();
+    }
+    /**
+     * Checks if a piece could be capture by opponent
+     *
+     * @param tile
+     * Tile to check
+     * @return
+     * If it can be captured or not
+     */
     private boolean isThreatened(Tile tile){
         Tile tempTile = board.tileFromPos(tile.getX()-1, tile.getY()+ tile.getPiece().getDirection());
         if(tempTile.hasPiece())
@@ -35,6 +65,15 @@ public class AI {
                 return true;
         return false;
     }
+
+    /**
+     * Check for most valuable moves and preform a random one of highest value
+     * Capture a piece is value highest, second is normal move that moves a pice out of harms way
+     * and then just a simple move
+     * @param moveValue
+     * @param lookForSave
+     * @return
+     */
     private boolean moveBasedOnValue(int moveValue, boolean lookForSave){
         ArrayList<ArrayList<Tile>> allMoves = new ArrayList<>();
         for (Tile[] tile: board.getBoard()) {
@@ -42,11 +81,10 @@ public class AI {
                 if(tilePiece.hasPiece()) {
                     if(tilePiece.getPiece().getPlayer() == 2) {
                         tilePiece.setSelected(true);
-                        oldTile = tilePiece;
                         ArrayList<Tile> moves = board.getPossibleMoves(tilePiece);
                         if(moves.size()>0) {
                             for (Tile tileMove : moves) {
-                                if (Math.abs(oldTile.getY() - tileMove.getY()) == moveValue) {
+                                if (Math.abs(tilePiece.getY() - tileMove.getY()) == moveValue) {
                                     if(!lookForSave) {
                                         ArrayList<Tile> tempMove = new ArrayList<>();
                                         tempMove.add(tilePiece);
@@ -67,15 +105,23 @@ public class AI {
                 }
             }
         }
+        moving = false;
         if(allMoves.size() == 0)
             return false;
-        else{
+        else if(canMoveAgain){
+            for (ArrayList<Tile> tileMove:allMoves) {
+                if(board.getSelectedTile() == tileMove.get(0)){
+                    board.makeMove(tileMove.get(1));
+                    return true;
+                }
+            }
+        }
+        else {
             int randomMove = new Random().nextInt(allMoves.size());
-            oldTile= allMoves.get(randomMove).get(0);
-            oldTile.setSelected(true);
+            board.setSelectedTile(allMoves.get(randomMove).get(0));
             board.makeMove(allMoves.get(randomMove).get(1));
             return true;
         }
-
+        return false;
     }
 }
