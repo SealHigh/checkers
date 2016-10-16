@@ -1,8 +1,6 @@
 package view;
 
 import controller.CheckersController;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
@@ -34,6 +32,7 @@ public class CheckersMenu extends MenuBar {
         itmNew5.setOnAction(event -> controller.onPause());
         itmNew6.setOnAction(event -> controller.onUnpause());
         itmNew7.setOnAction(event -> controller.onRules());
+        itmNew8.setOnAction(event -> controller.onAbout());
 
 
         subMenuNew.getItems().addAll(itmNew1, itmNew2);

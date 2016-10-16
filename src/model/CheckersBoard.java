@@ -16,7 +16,7 @@ import java.util.Observable;
 
 public class CheckersBoard extends Observable implements Serializable {
 
-    private int WIDTH = 6, HEIGHT =6, timer = 400;
+    private int WIDTH = 8, HEIGHT =8, timer = 400;
     private Tile[][] board = new Tile[WIDTH][HEIGHT];
     public static int curPlayer;
     public static boolean canMoveAgain;

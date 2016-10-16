@@ -1,9 +1,13 @@
 package controller;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import model.CheckersBoard;
 import view.CheckersView;
-
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
@@ -44,23 +48,36 @@ public class CheckersController {
         board.setPaused(false);
     }
 
+    public void onAbout(){
+        Alert alert= new Alert(Alert.AlertType.INFORMATION,
+                "Created by Martin Renström\n\n" +
+                        "In two days, two rather long days.\n" +
+                        "And the AI is still garbage,\n" +
+                        "if you lose to it you should feel bad.");
+        alert.setHeaderText("About");
+        alert.showAndWait();
+    }
+
     public void onRules(){
         Alert alert= new Alert(Alert.AlertType.INFORMATION,
                 "Checkers is a board game played on dark tiles only\n\n" +
                 "1. A piece can only move diagonally forward unless it's a queen\n" +
                 "2. A piece can also destroy an enemy piece by stepping over it\n" +
-                        "3. A piece turns into a queen upon reaching opposite side");
+                        "3. A piece turns into a queen upon reaching opposite side\n" +
+                        "4. If you captured a piece and can capture another you may do so\n" +
+                        "5. If you dont want to capture another simply press the piece again");
         alert.setHeaderText("Rules");
         alert.showAndWait();
     }
 
+
     public void onLoad(){
         SaveManager sm = new SaveManager();
-        final JFileChooser fc = new JFileChooser();
-        int returnVal = fc.showOpenDialog(fc);
-
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open save");
+        Stage test = (Stage) view.getScene().getWindow();
+        File file = fileChooser.showOpenDialog(test);
+        if (file != null) {
             try {
                 this.board = sm.deSerializeFromFile(file.getAbsolutePath());
                 view.setBoard(this.board);
@@ -80,12 +97,12 @@ public class CheckersController {
 
     public void onSave(){
         SaveManager sm = new SaveManager();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Create save");
+        Stage test = (Stage) view.getScene().getWindow();
+        File file = fileChooser.showSaveDialog(test);
 
-        final JFileChooser fc = new JFileChooser();
-        int returnVal = fc.showOpenDialog(fc);
-
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
+        if (file != null) {
             try {
 
                 sm.serializeToFile(file.getAbsolutePath(), this.board);

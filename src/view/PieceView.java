@@ -1,12 +1,10 @@
 package view;
-import javafx.animation.AnimationTimer;
 import javafx.animation.TranslateTransition;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import model.Piece;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -25,6 +23,7 @@ public class PieceView extends StackPane implements Observer {
     private int timer;
     private int offset;
     private Text text;
+
     public PieceView(model.Piece piece, int TILE_SIZE, int timer){
         this.piece = piece;
         this.timer = timer;
@@ -35,7 +34,11 @@ public class PieceView extends StackPane implements Observer {
 
         this.TILE_SIZE = TILE_SIZE;
         offset = TILE_SIZE / 20;
-        text = new Text("");
+
+        if(piece.isQueen())
+            text = new Text("Q");
+        else
+            text = new Text("");
         text.setFont(new Font(TILE_SIZE/3));
 
         pieceBottom = new Circle(TILE_SIZE/2-TILE_SIZE/20);
@@ -68,9 +71,5 @@ public class PieceView extends StackPane implements Observer {
             text.setText("Q");
         if(!piece.isAlive())
             this.getChildren().removeAll(pieceBottom, pieceTop,text);
-
-
     }
-
-
 }

@@ -4,6 +4,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 import static model.CheckersBoard.curPlayer;
@@ -12,7 +13,7 @@ import static model.CheckersBoard.canMoveAgain;
 /**
  * Created by Martin on 2016-10-15.
  */
-public class AI {
+public class AI implements Serializable {
 
     private CheckersBoard board;
     private boolean moving;
