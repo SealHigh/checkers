@@ -30,18 +30,20 @@ public class CheckersView extends BorderPane {
     }
 
     public void initView(CheckersController controller) {
-        this.setPrefSize(WIDTH * TILE_SIZE, HEIGHT*TILE_SIZE);
-        CurrentPlayer curPlayer = new CurrentPlayer(board, TILE_SIZE);
+        this.setPrefSize(WIDTH * TILE_SIZE, HEIGHT*TILE_SIZE+menuBarHeight);
+        BoardState curPlayer = new BoardState(board, TILE_SIZE);
         CheckersMenu menu = new CheckersMenu(menuBarHeight,WIDTH*TILE_SIZE, controller);
         Group top  = new Group();
         top.getChildren().addAll(menu,curPlayer);
-        this.setTop(top);
+        this.setTop(menu);
 
         Group tileGroup = new Group();
         Group pieceGroup = new Group();
         Group game  = new Group();
         game.getChildren().addAll(tileGroup,pieceGroup);
-        this.setCenter(game);
+        game.setTranslateY(menuBarHeight); //place game scene below menubar
+        this.getChildren().addAll(game,curPlayer);
+
 
         for (Tile[] tile: board.getBoard()
              ) {

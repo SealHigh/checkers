@@ -19,10 +19,10 @@ public class CheckersBoard extends Observable implements Serializable {
 
     private int WIDTH = 6, HEIGHT =6, timer = 500;
     private Tile[][] board = new Tile[WIDTH][HEIGHT];
-    private int curPlayer = 1;
+    private int curPlayer;
     private Tile oldTile;
     private boolean AI;
-    private int winner = 0;
+    private int winner;
     private boolean moving;
 
     public CheckersBoard(){
@@ -44,6 +44,7 @@ public class CheckersBoard extends Observable implements Serializable {
     private void createBoard(boolean AI) {
         this.AI = AI;
         winner = 0;
+        curPlayer = 1;
         moving = false;
         for (int y = 0; y< WIDTH; y ++){
             for (int x =0;  x< HEIGHT; x++){
@@ -58,12 +59,11 @@ public class CheckersBoard extends Observable implements Serializable {
     }
 
     public void resetBoard(boolean AI){
-        curPlayer = 1;
         createBoard(AI);
     }
 
     private ArrayList<Tile> possibleMoves(Tile tile){
-        ArrayList moves = new ArrayList<Tile>();
+        ArrayList<Tile> moves = new ArrayList<>();
 
         Tile tempTile;
         if(checkMove(tempTile = tileFromPos(tile.getX()+1, tile.getY()+tile.getPiece().getDirection())))
@@ -108,9 +108,10 @@ public class CheckersBoard extends Observable implements Serializable {
         }
         int tempX = (oldTile.getX() + tempTile.getX())/2;
         int tempY = (oldTile.getY() + tempTile.getY())/2;
+        Tile tileInMiddle = tileFromPos(tempX, tempY);
 
-        if (oldTile.isSelected() && tileFromPos(tempX, tempY).hasPiece()&& !tempTile.hasPiece() ) {
-            if(tileFromPos(tempX, tempY).getPiece().getPlayer()!= oldTile.getPiece().getPlayer()) {
+        if (oldTile.isSelected() && tileInMiddle.hasPiece()&& !tempTile.hasPiece() ) {
+            if(tileInMiddle.getPiece().getPlayer()!= oldTile.getPiece().getPlayer()) {
                 if (Math.abs(tempTile.getX() - oldTile.getX()) == 2 && tempTile.getY() - oldTile.getY() == oldTile.getPiece().getDirection() * 2) {
                     return true;
                 }
@@ -124,14 +125,16 @@ public class CheckersBoard extends Observable implements Serializable {
         return false;
     }
 
-    private Tile pieceToKill(Tile tempTile){
+    private void killPiece(Tile tempTile){
         int tempX = (oldTile.getX() + tempTile.getX())/2;
         int tempY = (oldTile.getY() + tempTile.getY())/2;
-        return tileFromPos(tempX, tempY);
+        Tile tileInMiddle = tileFromPos(tempX, tempY);
+        tileInMiddle.getPiece().destroyPiece();
+        tileInMiddle.setPiece(null);
     }
 
     private void makeMove(Tile tempTile){
-        if(Math.abs(oldTile.getY() - tempTile.getY())==1) {
+        if(Math.abs(oldTile.getY() - tempTile.getY())==1) { //move is a simple step
             moving=true;
             oldTile.setSelected(false);
             tempTile.setPiece(oldTile.getPiece());
@@ -140,10 +143,9 @@ public class CheckersBoard extends Observable implements Serializable {
             switchPlayer();
         }
 
-        else if(Math.abs(oldTile.getY() - tempTile.getY())==2) {
+        else if(Math.abs(oldTile.getY() - tempTile.getY())==2) { //move kills an enemy pice
             moving=true;
-            pieceToKill(tempTile).getPiece().destroyPiece();
-            pieceToKill(tempTile).setPiece(null);
+            killPiece(tempTile);
             oldTile.setSelected(false);
             tempTile.setPiece(oldTile.getPiece());
             oldTile.getPiece().setPos(tempTile.getX(), tempTile.getY());
@@ -151,16 +153,13 @@ public class CheckersBoard extends Observable implements Serializable {
             switchPlayer();
         }
 
-        if (tempTile.getPiece().getDirection() == -1 && tempTile.getY() == 0){
-            System.out.print("test");
+        if (tempTile.getPiece().getDirection() == -1 && tempTile.getY() == 0){ //reaching opposite side
             tempTile.getPiece().setQueen(true);
         }
-        System.out.println(tempTile.getPiece().getDirection());
-        if (tempTile.getPiece().getDirection() == 1 && tempTile.getY() == WIDTH-1) {
+        if (tempTile.getPiece().getDirection() == 1 && tempTile.getY() == WIDTH-1) { //reaching opposite side
             tempTile.getPiece().setQueen(true);
-            System.out.print("test");
         }
-        Timeline timeline = new Timeline(new KeyFrame(
+        Timeline timeline = new Timeline(new KeyFrame( //Wait a little while before next player can go
                 Duration.millis(timer),
                 actionEvent->checkWin()));
         timeline.play();
@@ -168,7 +167,7 @@ public class CheckersBoard extends Observable implements Serializable {
     }
 
     public void move(Tile tempTile) {
-        if (!moving) {
+        if (!moving && winner==0) {
             if (oldTile != null) {
                 ArrayList<Tile> moves = possibleMoves(oldTile);
                 for (Tile tile : moves
@@ -185,10 +184,11 @@ public class CheckersBoard extends Observable implements Serializable {
                     }
                 }
             }
+
             if (tempTile.hasPiece() && !tempTile.isSelected()) {
                 if (tempTile.getPiece().getPlayer() == curPlayer) {
                     tempTile.setSelected(true);
-                    if(oldTile != null)
+                    if(oldTile != null && oldTile != tempTile)
                         oldTile.setSelected(false);
                     oldTile = tempTile;
                 }
@@ -222,7 +222,7 @@ public class CheckersBoard extends Observable implements Serializable {
         }
         if(player1 == 0)
             setWinner(2);
-        else if(player2 == 0)
+        else if(player2== 0)
             setWinner(1);
         else
             moving=false;
